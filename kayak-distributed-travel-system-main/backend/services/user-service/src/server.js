@@ -14,7 +14,7 @@ const requestLogger = require('./middleware/requestLogger');
 
 // Initialize Express app
 const app = express();
-const PORT = process.env.PORT || 3002;
+const PORT = process.env.PORT || 5001;
 
 // Middleware
 app.use(cors()); // Enable CORS for frontend

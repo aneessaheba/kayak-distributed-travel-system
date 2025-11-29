@@ -1,27 +1,30 @@
-const mongoose = require('mongoose');
+const mysql = require('mysql2/promise');
 require('dotenv').config();
 
-// MongoDB connection URI
-const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/kayak_users';
+// Create MySQL connection pool for better performance
+const pool = mysql.createPool({
+  host: process.env.DB_HOST || 'localhost',
+  port: process.env.DB_PORT || 3306,
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME || 'kayak_users',
+  connectionLimit: parseInt(process.env.MYSQL_CONNECTION_LIMIT) || 10,
+  waitForConnections: true,
+  queueLimit: 0,
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 0
+});
 
-// Connect to MongoDB
-async function connectDB() {
+// Test database connection
+async function testConnection() {
   try {
-    await mongoose.connect(mongoURI, {
-      maxPoolSize: 10,
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
-    });
-    console.log('✓ MongoDB connected successfully');
+    const connection = await pool.getConnection();
+    console.log('✓ MySQL Database connected successfully');
+    connection.release();
   } catch (error) {
-    console.error('✗ MongoDB connection failed:', error.message);
+    console.error('✗ MySQL Database connection failed:', error.message);
     throw error;
   }
 }
 
-// Test database connection (alias for connectDB for compatibility)
-async function testConnection() {
-  return connectDB();
-}
-
-module.exports = { connectDB, testConnection };
+module.exports = { pool, testConnection };

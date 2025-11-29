@@ -40,7 +40,7 @@ mongosh --eval "db.runCommand({ ping: 1 })"
 
 ---
 
-## Step 3: Start MySQL & Create Database
+## Step 3: Start MySQL & Create Databases
 
 ```bash
 # macOS (Homebrew)
@@ -52,10 +52,31 @@ mysql -u root -p
 
 **Run these SQL commands:**
 ```sql
-CREATE DATABASE kayak_billing;
+-- Create User Service Database
+CREATE DATABASE IF NOT EXISTS kayak_users;
+USE kayak_users;
+
+CREATE TABLE IF NOT EXISTS users (
+  user_id VARCHAR(11) PRIMARY KEY,
+  first_name VARCHAR(50) NOT NULL,
+  last_name VARCHAR(50) NOT NULL,
+  email VARCHAR(100) UNIQUE NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  address VARCHAR(255),
+  city VARCHAR(100),
+  state VARCHAR(2),
+  zip_code VARCHAR(10),
+  phone_number VARCHAR(20),
+  profile_image VARCHAR(255),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Create Billing Service Database
+CREATE DATABASE IF NOT EXISTS kayak_billing;
 USE kayak_billing;
 
-CREATE TABLE bookings (
+CREATE TABLE IF NOT EXISTS bookings (
   id INT AUTO_INCREMENT PRIMARY KEY,
   booking_id VARCHAR(50) UNIQUE NOT NULL,
   user_id VARCHAR(50) NOT NULL,
@@ -71,7 +92,7 @@ CREATE TABLE bookings (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-CREATE TABLE billing (
+CREATE TABLE IF NOT EXISTS billing (
   id INT AUTO_INCREMENT PRIMARY KEY,
   billing_id VARCHAR(50) UNIQUE NOT NULL,
   user_id VARCHAR(50) NOT NULL,
@@ -161,8 +182,9 @@ PORT=5050 node src/server.js
 ### Terminal 2 - User Service (Port 5001)
 ```bash
 cd kayak-distributed-travel-system-main/backend/services/user-service
-MONGODB_URI=mongodb://127.0.0.1:27017/kayak_users PORT=5001 node src/app.js
+DB_HOST=localhost DB_USER=root DB_PASSWORD=YOUR_PASSWORD DB_NAME=kayak_users PORT=5001 node src/server.js
 ```
+> ⚠️ Replace `YOUR_PASSWORD` with your MySQL root password
 
 ### Terminal 3 - Flights Service (Port 5002)
 ```bash
